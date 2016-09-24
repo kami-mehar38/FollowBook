@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@mipmap/lock_screen_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <include layout="@layout/toolbar" />
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/TV_childLock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Child Lock"
+            android:textSize="30sp"
+            android:textColor="#f9f9f9"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="50dp" />
+
+        <ImageView
+            android:id="@+id/lock"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/lock"
+            android:contentDescription="Lock"
+            android:layout_below="@+id/TV_childLock"
+            android:layout_centerInParent="true"
+            android:layout_marginTop="50dp"
+            />
+
+        <ImageView
+            android:id="@+id/unlock"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/unlock"
+            android:contentDescription="Lock"
+            android:layout_below="@+id/lock"
+            android:layout_centerInParent="true"
+            android:layout_marginTop="20dp"/>
+
+    </RelativeLayout>
+
+</LinearLayout>
