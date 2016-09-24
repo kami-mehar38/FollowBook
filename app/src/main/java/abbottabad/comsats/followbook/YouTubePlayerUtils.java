@@ -4,6 +4,7 @@ package abbottabad.comsats.followbook;
  * This project FollowBook is created by Kamran Ramzan on 24-Sep-16.
  */
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowManager;
@@ -57,7 +58,7 @@ public class YouTubePlayerUtils extends YouTubeBaseActivity implements
 
             // loadVideo() will auto play video
             // Use cueVideo() method, if you don't want to play it automatically
-            player.loadVideo("bn8e0Tn2VXU");
+            player.loadVideo(Config.getYoutubeLink());
 
             // Hiding player controls
             //player.setPlayerStyle(PlayerStyle.CHROMELESS);

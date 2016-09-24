@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.MediaController;
@@ -55,6 +56,10 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
     private RecordAudio recordAudio;
     private Uri videofileUri;
     public static FullscreenVideoLayout videoLayout;
+    public static boolean isPlayingAudio = false;
+    private Button btnAddLink;
+    private AlertDialog AD_link;
+    private EditText ET_link;
 
 
     @Override
@@ -85,6 +90,7 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
                 followBookDB.addImage(new int[]{imageId}, "default");
                 followBookDB.addSound(new int[]{imageId}, "default");
                 followBookDB.addVideo(new int[]{imageId}, "default");
+                followBookDB.addYouTubeLink(new int[]{imageId}, "default");
             }
         });
 
@@ -92,7 +98,7 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
                 "Take Picture",
                 "Record Sound",
                 "Record Video",
-                "Link youtube or web",
+                "Link youtube",
                 "Sub folder"};
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -157,6 +163,20 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
                         // start the Video Capture Intent
                         startActivityForResult(intent, VIDEO_REQUEST_CODE);
 
+                        break;
+                    }
+                    case 3:{
+                        View view = LayoutInflater.from(FolderOne.this).inflate(R.layout.add_link_layout, null);
+                        Button btnCancel = (Button) view.findViewById(R.id.btn_cancelLink);
+                        btnCancel.setOnClickListener(FolderOne.this);
+                        btnAddLink = (Button) view.findViewById(R.id.btn_addLink);
+                        btnAddLink.setOnClickListener(FolderOne.this);
+                        ET_link = (EditText) view.findViewById(R.id.ET_link);
+                        AlertDialog.Builder builder = new AlertDialog.Builder(FolderOne.this);
+                        builder.setView(view);
+                        builder.setCancelable(false);
+                        AD_link = builder.create();
+                        AD_link.show();
                         break;
                     }
                 }
@@ -274,6 +294,16 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
                 AD_record.cancel();
                 break;
             }
+            case R.id.btn_cancelLink:{
+                AD_link.cancel();
+                break;
+            }
+            case R.id.btn_addLink:{
+                String link = ET_link.getText().toString().trim();
+                link = link.substring(link.lastIndexOf("=") + 1);
+                followBookDB.updateYouTubeLink(link, selectedPosition);
+                break;
+            }
         }
     }
 
@@ -308,6 +338,8 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
         if (videoLayout.getVisibility() == View.VISIBLE){
             videoLayout.stop();
             videoLayout.setVisibility(View.GONE);
+        } else if (isPlayingAudio) {
+            recordAudio.stopPlaying();
         } else {
             super.onBackPressed();
         }

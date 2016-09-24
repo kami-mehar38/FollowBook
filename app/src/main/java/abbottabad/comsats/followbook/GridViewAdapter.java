@@ -1,7 +1,6 @@
 package abbottabad.comsats.followbook;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -10,16 +9,12 @@ import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
-import android.provider.MediaStore;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,7 +25,7 @@ import java.util.List;
  */
 public class GridViewAdapter extends BaseAdapter {
 
-    private Context context;
+    private static Context context;
     private List<ImageInfo> imageInfoList = new ArrayList<>();
     private int orientation;
 
@@ -64,7 +59,7 @@ public class GridViewAdapter extends BaseAdapter {
         if (convertView == null) {
             // if it's not recycled, initialize some attributes
             imageView = new ImageView(context);
-            imageView.setLayoutParams(new GridView.LayoutParams(200, 200));
+            imageView.setLayoutParams(new GridView.LayoutParams(300, 300));
             imageView.setScaleType(ImageView.ScaleType.FIT_XY);
 
         } else {
@@ -76,7 +71,7 @@ public class GridViewAdapter extends BaseAdapter {
         if (imageInfo.getImagePath() != null){
 
             Bitmap bitmap = BitmapFactory.decodeFile(imageInfo.getImagePath());
-            bitmap = ThumbnailUtils.extractThumbnail(bitmap, 200, 200, ThumbnailUtils.OPTIONS_RECYCLE_INPUT);
+            bitmap = ThumbnailUtils.extractThumbnail(bitmap, 300, 300, ThumbnailUtils.OPTIONS_RECYCLE_INPUT);
             ExifInterface exif = null;
             try {
                 exif = new ExifInterface(imageInfo.getImagePath());
@@ -112,22 +107,39 @@ public class GridViewAdapter extends BaseAdapter {
             imageView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    String soundPath = new FollowBookDB(context).getSound(position);
-                    if (!soundPath.equals("default")) {
-                        new RecordAudio().startPlaying(soundPath);
-                    }
-
-                    String videoPath = new FollowBookDB(context).getVideo(position);
-                    if (videoPath != null && !videoPath.equals("default")) {
-                        /*FolderOne.videoLayout.reset();
-                        FolderOne.videoLayout.setVisibility(View.VISIBLE);
-                        FolderOne.videoLayout.setVideoURI(Uri.parse("https://www.youtube.com/watch?v=AaXaig_43lU"));*/
-                        context.startActivity(new Intent(context, YouTubePlayerUtils.class));
-                    }
+                    //playSound(position);
+                    String link = new FollowBookDB(context).getYouTubeLink(position);
+                    Config.setYoutubeLink(link);
+                    context.startActivity(new Intent(context, YouTubePlayerUtils.class));
                 }
             });
         }
         return imageView;
+    }
+
+    public static void playVideo(int position) {
+        String videoPath = new FollowBookDB(context).getVideo(position);
+        if (!videoPath.equals("default")) {
+            FolderOne.videoLayout.reset();
+            FolderOne.videoLayout.setVisibility(View.VISIBLE);
+            try {
+                FolderOne.videoLayout.setVideoURI(Uri.parse(videoPath));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void playSound(int position) {
+        String soundPath = new FollowBookDB(context).getSound(position);
+        if (!soundPath.equals("default")) {
+            FolderOne.isPlayingAudio = true;
+            new RecordAudio().startPlaying(soundPath, position);
+        } else {
+            if (FolderOne.isPlayingAudio) {
+                playVideo(position);
+            }
+        }
     }
 
 }

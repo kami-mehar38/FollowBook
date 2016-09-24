@@ -15,17 +15,19 @@ import java.util.Date;
 
 public class RecordAudio
 {
-     private static final String LOG_TAG = "RecordAudio";
+     private final String LOG_TAG = "RecordAudio";
      private static String mFileName = null;
      private MediaRecorder mRecorder = null;
-     private MediaPlayer   mPlayer = null;
+     private static MediaPlayer   mPlayer = null;
 
-    public void startPlaying(String soundPath) {
+    public void startPlaying(String soundPath, final int position) {
         mPlayer = new MediaPlayer();
         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
+                FolderOne.isPlayingAudio = false;
                 stopPlaying();
+                GridViewAdapter.playVideo(position);
             }
         });
         try {
