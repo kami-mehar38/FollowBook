@@ -6,6 +6,7 @@ package abbottabad.comsats.followbook;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -16,7 +17,7 @@ import com.google.android.youtube.player.YouTubePlayer.PlayerStyle;
 import com.google.android.youtube.player.YouTubePlayerView;
 
 public class YouTubePlayerUtils extends YouTubeBaseActivity implements
-        YouTubePlayer.OnInitializedListener {
+        YouTubePlayer.OnInitializedListener, YouTubePlayer.PlayerStateChangeListener {
 
     private static final int RECOVERY_DIALOG_REQUEST = 1;
 
@@ -34,10 +35,13 @@ public class YouTubePlayerUtils extends YouTubeBaseActivity implements
 
         youTubeView = (YouTubePlayerView) findViewById(R.id.youtube_view);
 
+
         // Initializing video player with developer key
         youTubeView.initialize(Config.DEVELOPER_KEY, this);
 
     }
+
+
 
     @Override
     public void onInitializationFailure(YouTubePlayer.Provider provider,
@@ -75,5 +79,38 @@ public class YouTubePlayerUtils extends YouTubeBaseActivity implements
 
     private YouTubePlayer.Provider getYouTubePlayerProvider() {
         return (YouTubePlayerView) findViewById(R.id.youtube_view);
+    }
+
+
+    @Override
+    public void onLoading() {
+
+    }
+
+    @Override
+    public void onLoaded(String s) {
+        Toast.makeText(this, "Video ended", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onAdStarted() {
+
+    }
+
+    @Override
+    public void onVideoStarted() {
+        Toast.makeText(this, "Video ended", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onVideoEnded() {
+        GridViewAdapter.openSubfolder();
+        Toast.makeText(this, "Video ended", Toast.LENGTH_LONG).show();
+        Log.i("TAG", "onVideoEnded: ENDED");
+    }
+
+    @Override
+    public void onError(YouTubePlayer.ErrorReason errorReason) {
+
     }
 }

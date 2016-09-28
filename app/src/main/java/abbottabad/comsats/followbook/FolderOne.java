@@ -15,6 +15,7 @@ import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
@@ -33,15 +34,15 @@ import com.github.rtoshiro.view.video.FullscreenVideoLayout;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 public class FolderOne extends AppCompatActivity implements View.OnClickListener {
 
-    private GridView gridView;
+    public static GridView gridView;
     public static AlertDialog alertDialog;
-    private GridViewAdapter gridViewAdapter;
-    private static ImageView selectedImageView;
+    public static GridViewAdapter gridViewAdapter;
     private final int IMAGE_REQUEST_CODE = 12;
     private final int VIDEO_REQUEST_CODE = 13;
     private static final int MEDIA_TYPE_VIDEO = 2;
@@ -60,6 +61,9 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
     private Button btnAddLink;
     private AlertDialog AD_link;
     private EditText ET_link;
+    private static SharedPreferences.Editor editor;
+    private static SharedPreferences sharedPreferences;
+    public static List<Integer> previousPosition;
 
 
     @Override
@@ -68,29 +72,48 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
         setContentView(R.layout.activity_folder_one);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        SharedPreferences sharedPreferences = initialSetup();
+        final String PREFERENCE_FILE_KEY = "abbottabad.comsats.followbook";
+        sharedPreferences = this.getSharedPreferences(PREFERENCE_FILE_KEY, Context.MODE_PRIVATE);
+        editor = sharedPreferences.edit();
+        editor.putInt("FOLDER", 1);
+        initialSetup();
         videoLayout = (FullscreenVideoLayout) findViewById(R.id.videoview);
         videoLayout.setActivity(this);
         videoLayout.setVisibility(View.GONE);
         final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putInt("FOLDER", 1);
         if (sharedPreferences.getBoolean("LOCKED", false)) {
             fab.setVisibility(View.GONE);
         }
 
+        previousPosition = new ArrayList<>();
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                int folder = sharedPreferences.getInt("FOLDER", 1);
                 ImageInfo imageInfo = new ImageInfo();
                 imageInfo.setImageId(R.drawable.picture);
                 int imageId = gridViewAdapter.addImage(imageInfo);
                 gridView.setAdapter(gridViewAdapter);
-                followBookDB.addImage(new int[]{imageId}, "default");
-                followBookDB.addSound(new int[]{imageId}, "default");
-                followBookDB.addVideo(new int[]{imageId}, "default");
-                followBookDB.addYouTubeLink(new int[]{imageId}, "default");
+
+                if (folder == 1) {
+                    followBookDB.addImage(new int[]{imageId}, "default");
+                    followBookDB.addSound(new int[]{imageId}, "default");
+                    followBookDB.addVideo(new int[]{imageId}, "default");
+                    followBookDB.addYouTubeLink(new int[]{imageId}, "default");
+                } else {
+                    int[] imageIds = new int[previousPosition.size() + 1];
+                    for (int i = 0; i < previousPosition.size(); i++){
+                        imageIds[i] = previousPosition.get(i);
+                    }
+                    imageIds[imageIds.length - 1] = imageId;
+                    followBookDB.addImage(imageIds, "default");
+                    followBookDB.addSound(imageIds, "default");
+                    followBookDB.addVideo(imageIds, "default");
+                    followBookDB.addYouTubeLink(imageIds, "default");
+                }
+
             }
         });
 
@@ -130,7 +153,7 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
                         }
                         break;
                     }
-                    case 1:{
+                    case 1: {
                         View view = LayoutInflater.from(FolderOne.this).inflate(R.layout.record_audio_layout, null);
                         Button btnCancel = (Button) view.findViewById(R.id.btn_cancel);
                         btnCancel.setOnClickListener(FolderOne.this);
@@ -144,7 +167,7 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
                         AD_record.show();
                         break;
                     }
-                    case 2:{
+                    case 2: {
                         // create new Intentwith with Standard Intent action that can be
                         // sent to have the camera application capture an video and return it.
 
@@ -165,7 +188,7 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
 
                         break;
                     }
-                    case 3:{
+                    case 3: {
                         View view = LayoutInflater.from(FolderOne.this).inflate(R.layout.add_link_layout, null);
                         Button btnCancel = (Button) view.findViewById(R.id.btn_cancelLink);
                         btnCancel.setOnClickListener(FolderOne.this);
@@ -177,6 +200,16 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
                         builder.setCancelable(false);
                         AD_link = builder.create();
                         AD_link.show();
+                        break;
+                    }
+                    case 4: {
+                        editor.putInt("FOLDER", sharedPreferences.getInt("FOLDER", 1) + 1);
+                        editor.commit();
+                        previousPosition.add(selectedPosition);
+                        for (int j = 0; j< previousPosition.size(); j++){
+                            Log.i("TAG", "onClick: " + previousPosition.get(j));
+                        }
+                        initialSetup();
                         break;
                     }
                 }
@@ -193,33 +226,43 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
     }
 
     @NonNull
-    private SharedPreferences initialSetup() {
-        final String PREFERENCE_FILE_KEY = "abbottabad.comsats.followbook";
-        SharedPreferences sharedPreferences = this.getSharedPreferences(PREFERENCE_FILE_KEY, Context.MODE_PRIVATE);
+    private void initialSetup() {
+
         gridView = (GridView) findViewById(R.id.GridLayout1);
         gridViewAdapter = new GridViewAdapter(FolderOne.this);
         followBookDB = new FollowBookDB(this);
         recordAudio = new RecordAudio();
         int folder = sharedPreferences.getInt("FOLDER", 1);
-        ImageInfo[] imageInfos;
-        List<String> imagePaths = followBookDB.showIcons();
-        if (folder == 1) {
-            int length = imagePaths.size();
-            imageInfos = new ImageInfo[length];
-            for (int i = 0; i < imageInfos.length; i++) {
-                imageInfos[i] = new ImageInfo();
-                if (imagePaths.get(i).equals("default")) {
-                    imageInfos[i].setImageId(R.drawable.picture);
-                    gridViewAdapter.addImage(imageInfos[i]);
-                } else {
-                    imageInfos[i].setImagePath(imagePaths.get(i));
-                    gridViewAdapter.addImage(imageInfos[i]);
-
-                }
-            }
-            gridView.setAdapter(gridViewAdapter);
+        if (folder > 1) {
+            followBookDB.upgrade();
         }
-        return sharedPreferences;
+        ImageInfo[] imageInfos;
+        List<String> imagePaths;
+        if (folder == 1){
+            Log.i("TAG", "initialSetup: " + folder);
+            imagePaths = followBookDB.showIcons(new int[]{});
+        } else {
+            int[] imageIds = new int[previousPosition.size()];
+            for (int i = 0; i< previousPosition.size(); i++){
+                imageIds[i] = previousPosition.get(i);
+            }
+            imagePaths = followBookDB.showIcons(imageIds);
+        }
+
+        int length = imagePaths.size();
+        imageInfos = new ImageInfo[length];
+        for (int i = 0; i < imageInfos.length; i++) {
+            imageInfos[i] = new ImageInfo();
+            if (imagePaths.get(i).equals("default")) {
+                imageInfos[i].setImageId(R.drawable.picture);
+                gridViewAdapter.addImage(imageInfos[i]);
+            } else {
+                imageInfos[i].setImagePath(imagePaths.get(i));
+                gridViewAdapter.addImage(imageInfos[i]);
+
+            }
+        }
+        gridView.setAdapter(gridViewAdapter);
     }
 
     @Override
@@ -246,15 +289,36 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        int folder =  sharedPreferences.getInt("FOLDER", 1);
         if (requestCode == IMAGE_REQUEST_CODE && resultCode == RESULT_OK) {
-            followBookDB.updateImagePath(mCurrentPhotoPath, selectedPosition);
+
+
+            if (folder > 1){
+                int[] imageIds = new int[previousPosition.size() + 1];
+                for (int i = 0; i < previousPosition.size(); i++){
+                    imageIds[i] = previousPosition.get(i);
+                }
+                imageIds[imageIds.length - 1] = selectedPosition;
+                followBookDB.updateImagePath(mCurrentPhotoPath, imageIds);
+            } else {
+                followBookDB.updateImagePath(mCurrentPhotoPath, new int[]{selectedPosition});
+            }
             initialSetup();
         }
         if (requestCode == VIDEO_REQUEST_CODE) {
 
             if (resultCode == RESULT_OK) {
                 // Video captured and saved to fileUri specified in the Intent
-                followBookDB.updateVideoPath(String.valueOf(videofileUri), selectedPosition);
+                if (folder > 1){
+                    int[] imageIds = new int[previousPosition.size() + 1];
+                    for (int i = 0; i < previousPosition.size(); i++){
+                        imageIds[i] = previousPosition.get(i);
+                    }
+                    imageIds[imageIds.length - 1] = selectedPosition;
+                    followBookDB.updateVideoPath(String.valueOf(videofileUri), imageIds);
+                } else {
+                    followBookDB.updateVideoPath(String.valueOf(videofileUri), new int[]{selectedPosition});
+                }
             } else if (resultCode == RESULT_CANCELED) {
                 // User cancelled the video capture
                 Toast.makeText(this, "User cancelled the video capture.",
@@ -268,12 +332,11 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
         }
     }
 
-
     @Override
     public void onClick(View view) {
-        switch (view.getId()){
-            case R.id.btn_start_stop :{
-                if (!isRecording){
+        switch (view.getId()) {
+            case R.id.btn_start_stop: {
+                if (!isRecording) {
                     recordAudio.startRecording();
                     btnStartStop.setText("Stop");
                     tv_status.setText("Recording...");
@@ -281,27 +344,47 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
                     isRecording = true;
                     break;
                 } else {
+                    int folder =  sharedPreferences.getInt("FOLDER", 1);
                     String filePath = recordAudio.stopRecording();
                     btnStartStop.setText("Start");
                     tv_status.setText("Record audio");
-                    Toast.makeText(FolderOne.this, "Stoped", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(FolderOne.this, "Stopped", Toast.LENGTH_SHORT).show();
                     isRecording = false;
-                    new FollowBookDB(FolderOne.this).updateSoundPath(filePath, selectedPosition);
+                    if (folder > 1){
+                        int[] imageIds = new int[previousPosition.size() + 1];
+                        for (int i = 0; i < previousPosition.size(); i++){
+                            imageIds[i] = previousPosition.get(i);
+                        }
+                        imageIds[imageIds.length - 1] = selectedPosition;
+                        new FollowBookDB(FolderOne.this).updateSoundPath(filePath, imageIds);
+                    } else {
+                        new FollowBookDB(FolderOne.this).updateSoundPath(filePath, new int[]{selectedPosition});
+                    }
                     break;
                 }
             }
-            case R.id.btn_cancel :{
+            case R.id.btn_cancel: {
                 AD_record.cancel();
                 break;
             }
-            case R.id.btn_cancelLink:{
+            case R.id.btn_cancelLink: {
                 AD_link.cancel();
                 break;
             }
-            case R.id.btn_addLink:{
+            case R.id.btn_addLink: {
                 String link = ET_link.getText().toString().trim();
-                link = link.substring(link.lastIndexOf("=") + 1);
-                followBookDB.updateYouTubeLink(link, selectedPosition);
+                link = link.substring(link.lastIndexOf("/") + 1);
+                int folder =  sharedPreferences.getInt("FOLDER", 1);
+                if (folder > 1){
+                    int[] imageIds = new int[previousPosition.size() + 1];
+                    for (int i = 0; i < previousPosition.size(); i++){
+                        imageIds[i] = previousPosition.get(i);
+                    }
+                    imageIds[imageIds.length - 1] = selectedPosition;
+                    followBookDB.updateYouTubeLink(link, imageIds);
+                } else {
+                    followBookDB.updateYouTubeLink(link, new int[]{selectedPosition});
+                }
                 break;
             }
         }
@@ -324,10 +407,11 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
     }
 
     public void showOptions(View view, int position) {
-        selectedImageView = (ImageView) view;
+        ImageView selectedImageView = (ImageView) view;
         selectedPosition = position;
         alertDialog.show();
     }
+
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -335,11 +419,18 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
 
     @Override
     public void onBackPressed() {
-        if (videoLayout.getVisibility() == View.VISIBLE){
+        int folder = sharedPreferences.getInt("FOLDER", 1);
+        if (videoLayout.getVisibility() == View.VISIBLE) {
             videoLayout.stop();
             videoLayout.setVisibility(View.GONE);
         } else if (isPlayingAudio) {
             recordAudio.stopPlaying();
+        } else if (folder > 1) {
+            folder = sharedPreferences.getInt("FOLDER", 1) - 1;
+            editor.putInt("FOLDER", folder);
+            editor.commit();
+            previousPosition.remove(previousPosition.size() - 1);
+            initialSetup();
         } else {
             super.onBackPressed();
         }
