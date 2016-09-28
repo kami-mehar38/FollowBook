@@ -49,12 +49,12 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
     private String mCurrentPhotoPath;
     private File photoFile;
     private static int selectedPosition;
-    private FollowBookDB followBookDB;
+    private static FollowBookDB followBookDB;
     private AlertDialog AD_record;
     private static boolean isRecording = false;
     private Button btnStartStop;
     private TextView tv_status;
-    private RecordAudio recordAudio;
+    private static RecordAudio recordAudio;
     private Uri videofileUri;
     public static FullscreenVideoLayout videoLayout;
     public static boolean isPlayingAudio = false;
@@ -72,11 +72,17 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
         setContentView(R.layout.activity_folder_one);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        gridView = (GridView) findViewById(R.id.GridLayout1);
         final String PREFERENCE_FILE_KEY = "abbottabad.comsats.followbook";
         sharedPreferences = this.getSharedPreferences(PREFERENCE_FILE_KEY, Context.MODE_PRIVATE);
         editor = sharedPreferences.edit();
         editor.putInt("FOLDER", 1);
+        previousPosition = new ArrayList<>();
+        followBookDB = new FollowBookDB(this);
+        recordAudio = new RecordAudio();
+        gridViewAdapter = new GridViewAdapter(FolderOne.this);
         initialSetup();
+
         videoLayout = (FullscreenVideoLayout) findViewById(R.id.videoview);
         videoLayout.setActivity(this);
         videoLayout.setVisibility(View.GONE);
@@ -86,7 +92,7 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
             fab.setVisibility(View.GONE);
         }
 
-        previousPosition = new ArrayList<>();
+
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -206,9 +212,6 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
                         editor.putInt("FOLDER", sharedPreferences.getInt("FOLDER", 1) + 1);
                         editor.commit();
                         previousPosition.add(selectedPosition);
-                        for (int j = 0; j< previousPosition.size(); j++){
-                            Log.i("TAG", "onClick: " + previousPosition.get(j));
-                        }
                         initialSetup();
                         break;
                     }
@@ -226,12 +229,8 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
     }
 
     @NonNull
-    private void initialSetup() {
-
-        gridView = (GridView) findViewById(R.id.GridLayout1);
-        gridViewAdapter = new GridViewAdapter(FolderOne.this);
-        followBookDB = new FollowBookDB(this);
-        recordAudio = new RecordAudio();
+    public void initialSetup() {
+        gridViewAdapter.clearAll();
         int folder = sharedPreferences.getInt("FOLDER", 1);
         if (folder > 1) {
             followBookDB.upgrade();
@@ -429,7 +428,9 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
             folder = sharedPreferences.getInt("FOLDER", 1) - 1;
             editor.putInt("FOLDER", folder);
             editor.commit();
-            previousPosition.remove(previousPosition.size() - 1);
+            if (previousPosition.size() > 0) {
+                previousPosition.remove(previousPosition.size() - 1);
+            }
             initialSetup();
         } else {
             super.onBackPressed();

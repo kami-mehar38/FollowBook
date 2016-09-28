@@ -35,7 +35,7 @@ public class GridViewAdapter extends BaseAdapter {
     private List<ImageInfo> imageInfoList = new ArrayList<>();
     private static List<Integer> previousPosition;
     private static FollowBookDB followBookDB;
-    private static int selectedPosition;
+    public static int selectedPosition;
 
     public GridViewAdapter(Context c) {
         this.context = c;
@@ -61,6 +61,9 @@ public class GridViewAdapter extends BaseAdapter {
         return 0;
     }
 
+    public void clearAll(){
+        imageInfoList.clear();
+    }
 
     // create a new ImageView for each item referenced by the Adapter
     public View getView(final int position, View convertView, ViewGroup parent) {
@@ -165,9 +168,9 @@ public class GridViewAdapter extends BaseAdapter {
             imageIds[imageIds.length - 1] = position;
             String videoPath = new FollowBookDB(context).getVideo(imageIds);
             if (!videoPath.equals("default")) {
-                FolderOne.videoLayout.reset();
-                FolderOne.videoLayout.setVisibility(View.VISIBLE);
                 try {
+                    FolderOne.videoLayout.reset();
+                    FolderOne.videoLayout.setVisibility(View.VISIBLE);
                     FolderOne.videoLayout.setVideoURI(Uri.parse(videoPath));
                     FolderOne.videoLayout.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                         @Override
@@ -179,6 +182,12 @@ public class GridViewAdapter extends BaseAdapter {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            } else {
+                FolderOne.previousPosition.add(GridViewAdapter.selectedPosition);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putInt("FOLDER", sharedPreferences.getInt("FOLDER", 1) + 1);
+                editor.apply();
+                new FolderOne().initialSetup();
             }
         } else {
             String videoPath = new FollowBookDB(context).getVideo(new int[]{position});
@@ -197,6 +206,12 @@ public class GridViewAdapter extends BaseAdapter {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            } else {
+                FolderOne.previousPosition.add(GridViewAdapter.selectedPosition);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putInt("FOLDER", sharedPreferences.getInt("FOLDER", 1) + 1);
+                editor.apply();
+                new FolderOne().initialSetup();
             }
         }
     }
@@ -214,46 +229,25 @@ public class GridViewAdapter extends BaseAdapter {
             if (!link.equals("default")) {
                 Config.setYoutubeLink(link);
                 context.startActivity(new Intent(context, YouTubePlayerUtils.class));
+            } else {
+                FolderOne.previousPosition.add(GridViewAdapter.selectedPosition);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putInt("FOLDER", sharedPreferences.getInt("FOLDER", 1) + 1);
+                editor.apply();
+                new FolderOne().initialSetup();
             }
         } else {
             String link = new FollowBookDB(context).getYouTubeLink(new int[]{position});
             if (!link.equals("default")) {
                 Config.setYoutubeLink(link);
                 context.startActivity(new Intent(context, YouTubePlayerUtils.class));
+            } else {
+                FolderOne.previousPosition.add(GridViewAdapter.selectedPosition);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putInt("FOLDER", sharedPreferences.getInt("FOLDER", 1) + 1);
+                editor.apply();
+                new FolderOne().initialSetup();
             }
         }
-    }
-
-    public static void openSubfolder(){
-        SharedPreferences sharedPreferences  = context.getSharedPreferences(PREFERENCE_FILE_KEY, Context.MODE_PRIVATE);
-        int folder = sharedPreferences.getInt("FOLDER", 1);
-            ImageInfo[] imageInfos;
-            List<String> imagePaths;
-            if (folder == 1){
-                Log.i("TAG", "initialSetup: " + folder);
-                imagePaths = followBookDB.showIcons(new int[]{});
-            } else {
-                previousPosition.add(selectedPosition);
-                int[] imageIds = new int[previousPosition.size()];
-                for (int i = 0; i< previousPosition.size(); i++){
-                    imageIds[i] = previousPosition.get(i);
-                }
-                imagePaths = followBookDB.showIcons(imageIds);
-            }
-            int length = imagePaths.size();
-            imageInfos = new ImageInfo[length];
-            for (int i = 0; i < imageInfos.length; i++) {
-                imageInfos[i] = new ImageInfo();
-                if (imagePaths.get(i).equals("default")) {
-                    imageInfos[i].setImageId(R.drawable.picture);
-                    FolderOne.gridViewAdapter.addImage(imageInfos[i]);
-                } else {
-                    imageInfos[i].setImagePath(imagePaths.get(i));
-                    FolderOne.gridViewAdapter.addImage(imageInfos[i]);
-
-                }
-            }
-            FolderOne.gridView.setAdapter(FolderOne.gridViewAdapter);
-
     }
 }

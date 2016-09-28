@@ -3,10 +3,13 @@ package abbottabad.comsats.followbook;
 /**
  * This project FollowBook is created by Kamran Ramzan on 24-Sep-16.
  */
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -17,12 +20,13 @@ import com.google.android.youtube.player.YouTubePlayer.PlayerStyle;
 import com.google.android.youtube.player.YouTubePlayerView;
 
 public class YouTubePlayerUtils extends YouTubeBaseActivity implements
-        YouTubePlayer.OnInitializedListener, YouTubePlayer.PlayerStateChangeListener {
+        YouTubePlayer.OnInitializedListener{
 
     private static final int RECOVERY_DIALOG_REQUEST = 1;
 
     // YouTube player view
     private YouTubePlayerView youTubeView;
+    private YouTubePlayer.PlayerStateChangeListener playerStateChangeListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,10 +42,9 @@ public class YouTubePlayerUtils extends YouTubeBaseActivity implements
 
         // Initializing video player with developer key
         youTubeView.initialize(Config.DEVELOPER_KEY, this);
+        playerStateChangeListener = new PlayerStateChangeListener(this);
 
     }
-
-
 
     @Override
     public void onInitializationFailure(YouTubePlayer.Provider provider,
@@ -63,7 +66,7 @@ public class YouTubePlayerUtils extends YouTubeBaseActivity implements
             // loadVideo() will auto play video
             // Use cueVideo() method, if you don't want to play it automatically
             player.loadVideo(Config.getYoutubeLink());
-
+            player.setPlayerStateChangeListener(playerStateChangeListener);
             // Hiding player controls
             //player.setPlayerStyle(PlayerStyle.CHROMELESS);
         }
@@ -81,36 +84,50 @@ public class YouTubePlayerUtils extends YouTubeBaseActivity implements
         return (YouTubePlayerView) findViewById(R.id.youtube_view);
     }
 
+    private class PlayerStateChangeListener implements YouTubePlayer.PlayerStateChangeListener{
 
-    @Override
-    public void onLoading() {
+        private Context context;
 
-    }
+        public PlayerStateChangeListener(Context context) {
+            this.context = context;
+        }
 
-    @Override
-    public void onLoaded(String s) {
-        Toast.makeText(this, "Video ended", Toast.LENGTH_LONG).show();
-    }
+        @Override
+        public void onLoading() {
 
-    @Override
-    public void onAdStarted() {
+        }
 
-    }
+        @Override
+        public void onLoaded(String s) {
 
-    @Override
-    public void onVideoStarted() {
-        Toast.makeText(this, "Video ended", Toast.LENGTH_LONG).show();
-    }
+        }
 
-    @Override
-    public void onVideoEnded() {
-        GridViewAdapter.openSubfolder();
-        Toast.makeText(this, "Video ended", Toast.LENGTH_LONG).show();
-        Log.i("TAG", "onVideoEnded: ENDED");
-    }
+        @Override
+        public void onAdStarted() {
 
-    @Override
-    public void onError(YouTubePlayer.ErrorReason errorReason) {
+        }
 
+        @Override
+        public void onVideoStarted() {
+
+        }
+
+        @Override
+        public void onVideoEnded() {
+            Toast.makeText(context, "OK", Toast.LENGTH_LONG).show();
+            FolderOne.previousPosition.add(GridViewAdapter.selectedPosition);
+            String PREFERENCE_FILE_KEY = "abbottabad.comsats.followbook";
+            SharedPreferences sharedPreferences  = context.getSharedPreferences(PREFERENCE_FILE_KEY, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt("FOLDER", sharedPreferences.getInt("FOLDER", 1) + 1);
+            editor.apply();
+            finish();
+            new FolderOne().initialSetup();
+        }
+
+        @Override
+        public void onError(YouTubePlayer.ErrorReason errorReason) {
+
+        }
     }
 }

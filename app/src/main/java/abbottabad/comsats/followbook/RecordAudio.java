@@ -40,6 +40,7 @@ public class RecordAudio
     }
 
     public void stopPlaying() {
+        if (mRecorder != null)
         mPlayer.release();
         mPlayer = null;
     }
