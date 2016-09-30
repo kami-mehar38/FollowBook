@@ -7,4 +7,9 @@
 
 
     <string name="error_player">There was an error initializing the YouTubePlayer (%1$s)</string>
+    <string name="enter_image_caption_here">Enter image caption here</string>
+    <string name="youtube_link">Youtube link</string>
+    <string name="image_caption">Image caption</string>
+    <string name="set">Set</string>
+    <string name="cancel">Cancel</string>
 </resources>

@@ -61,7 +61,8 @@ class FollowBookDB extends SQLiteOpenHelper {
             querryString3 += " INTEGER";
             querryString3 += ",";
         }
-        querryString += FollowBookInfo.innerClass.Image_Path + " TEXT";
+        querryString += FollowBookInfo.innerClass.Image_Path + " TEXT,";
+        querryString += FollowBookInfo.innerClass.Image_Text + " TEXT";
         querryString1 += FollowBookInfo.innerClass.Sound_Path + " TEXT";
         querryString2 += FollowBookInfo.innerClass.Video_Path + " TEXT";
         querryString3 += FollowBookInfo.innerClass.YouTube_Path + " TEXT";
@@ -82,12 +83,12 @@ class FollowBookDB extends SQLiteOpenHelper {
                 " operations", "tables created...");
     }
 
-    public void upgrade() {
+    void upgrade() {
         SQLiteDatabase db = this.getWritableDatabase();
         createTable(db);
     }
 
-    void addImage(int image_id[], String image_path) {
+    void addImage(int image_id[], String image_path, String image_text) {
         int value = sharedPreferences.getInt("FOLDER", 1);
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -98,6 +99,7 @@ class FollowBookDB extends SQLiteOpenHelper {
             i++;
         }
         values.put(FollowBookInfo.innerClass.Image_Path, image_path);
+        values.put(FollowBookInfo.innerClass.Image_Text, image_text);
         db.insert(FollowBookInfo.innerClass.Table_Image + value, null, values);
         db.close();
         Log.e("database operations", "one row inserted...");
@@ -127,17 +129,41 @@ class FollowBookDB extends SQLiteOpenHelper {
         db.close();
     }
 
+    void updateImageText(String imageText, int[] imageId) {
+        int value = sharedPreferences.getInt("FOLDER", 1);
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        int i = 0;
+        String whereClause = "";
+        String[] compareClause = new String[imageId.length];
+        for (int anImage_id : imageId) {
+            compareClause[i] = String.valueOf(anImage_id);
+            if (i == 0) {
+                whereClause += FollowBookInfo.innerClass.Image_Id + (i + 1) + " = ?";
+            } else {
+                whereClause += " AND ";
+                whereClause += FollowBookInfo.innerClass.Image_Id + (i + 1) + " = ? ";
+            }
+            i++;
+        }
+
+        values.put(FollowBookInfo.innerClass.Image_Text, imageText);
+        db.update(FollowBookInfo.innerClass.Table_Image + value, values, whereClause, compareClause);
+        db.close();
+    }
+
     List<String> showIcons(int[] imageId) {
         SQLiteDatabase db = this.getReadableDatabase();
         int value = sharedPreferences.getInt("FOLDER", 1);
 
-        String selectQuery = "";
+        String selectQuery;
         if (value == 1) {
             Log.i("TAG", "showIcons: ");
-            selectQuery = "SELECT " + FollowBookInfo.innerClass.Image_Path + " FROM " + FollowBookInfo.innerClass.Table_Image + value;
+            selectQuery = "SELECT " + FollowBookInfo.innerClass.Image_Path + ", " + FollowBookInfo.innerClass.Image_Text + " FROM " + FollowBookInfo.innerClass.Table_Image + value;
         } else {
             int i = 1;
-            selectQuery = "SELECT " + FollowBookInfo.innerClass.Image_Path + " FROM " + FollowBookInfo.innerClass.Table_Image + value;
+            selectQuery = "SELECT " + FollowBookInfo.innerClass.Image_Path + ", " + FollowBookInfo.innerClass.Image_Text + " FROM " + FollowBookInfo.innerClass.Table_Image + value;
 
             for (int anImage_id : imageId) {
                 if (i == 1) {
@@ -155,6 +181,7 @@ class FollowBookDB extends SQLiteOpenHelper {
         List<String> imagePaths = new ArrayList<>();
         while (!cursor.isAfterLast()) {
             imagePaths.add(cursor.getString(0));
+            imagePaths.add(cursor.getString(1));
             Log.i("TAG", "showIcons: " + cursor.getString(0));
             cursor.moveToNext();
         }
@@ -209,7 +236,7 @@ class FollowBookDB extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         int value = sharedPreferences.getInt("FOLDER", 1);
 
-        String selectQuery = "";
+        String selectQuery;
 
         int i = 1;
         selectQuery = "SELECT " + FollowBookInfo.innerClass.Sound_Path + " FROM " + FollowBookInfo.innerClass.Table_Sound + value;
@@ -284,7 +311,7 @@ class FollowBookDB extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         int value = sharedPreferences.getInt("FOLDER", 1);
 
-        String selectQuery = "";
+        String selectQuery;
 
         int i = 1;
         selectQuery = "SELECT " + FollowBookInfo.innerClass.Video_Path + " FROM " + FollowBookInfo.innerClass.Table_Video + value;
@@ -360,7 +387,7 @@ class FollowBookDB extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         int value = sharedPreferences.getInt("FOLDER", 1);
 
-        String selectQuery = "";
+        String selectQuery;
 
         int i = 1;
         selectQuery = "SELECT " + FollowBookInfo.innerClass.YouTube_Path + " FROM " + FollowBookInfo.innerClass.Table_YouTube + value;

@@ -13,7 +13,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
 
-
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -42,11 +41,12 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"></meta-data>
+                android:resource="@xml/file_paths" />
         </provider>
 
-        <activity android:name=".YouTubePlayerUtils"
-            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".YouTubePlayerUtils"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

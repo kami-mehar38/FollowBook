@@ -17,4 +17,14 @@ public class Config {
     public static void setYoutubeLink(String youtubeLink) {
         YOUTUBE_LINK = youtubeLink;
     }
+
+    private static int position;
+
+    public static int getPosition() {
+        return position;
+    }
+
+    public static void setPosition(int position) {
+        Config.position = position;
+    }
 }

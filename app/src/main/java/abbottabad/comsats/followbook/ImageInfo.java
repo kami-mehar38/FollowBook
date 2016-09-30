@@ -1,39 +1,36 @@
 package abbottabad.comsats.followbook;
 
-import android.graphics.Bitmap;
-import android.net.Uri;
-
 /**
  * This project FollowBook is created by Kamran Ramzan on 20-Sep-16.
  */
-public class ImageInfo {
-    int imageId;
+class ImageInfo {
+    private int imageId;
 
-    public String getImagePath() {
+    String getImagePath() {
         return imagePath;
     }
 
-    public void setImagePath(String imagePath) {
+    void setImagePath(String imagePath) {
         this.imagePath = imagePath;
     }
 
-    String imagePath = null;
+    private String imagePath = null;
 
-    public int getImageId() {
+    int getImageId() {
         return imageId;
     }
 
-    public void setImageId(int imageId) {
+    void setImageId(int imageId) {
         this.imageId = imageId;
     }
 
-    String soundPath = null;
+    private String imageText;
 
-    public String getSoundPath() {
-        return soundPath;
+    String getImageText() {
+        return imageText;
     }
 
-    public void setSoundPath(String soundPath) {
-        this.soundPath = soundPath;
+    void setImageText(String imageText) {
+        this.imageText = imageText;
     }
 }

@@ -6,17 +6,14 @@ package abbottabad.comsats.followbook;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
+
 import com.google.android.youtube.player.YouTubeBaseActivity;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
-import com.google.android.youtube.player.YouTubePlayer.PlayerStyle;
 import com.google.android.youtube.player.YouTubePlayerView;
 
 public class YouTubePlayerUtils extends YouTubeBaseActivity implements
@@ -115,7 +112,7 @@ public class YouTubePlayerUtils extends YouTubeBaseActivity implements
         @Override
         public void onVideoEnded() {
             Toast.makeText(context, "OK", Toast.LENGTH_LONG).show();
-            FolderOne.previousPosition.add(GridViewAdapter.selectedPosition);
+            FolderOne.previousPosition.add(Config.getPosition());
             String PREFERENCE_FILE_KEY = "abbottabad.comsats.followbook";
             SharedPreferences sharedPreferences  = context.getSharedPreferences(PREFERENCE_FILE_KEY, Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
