@@ -37,7 +37,7 @@
         android:id="@+id/btn_addLink"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Add"
+        android:text="@string/ok"
         android:textAllCaps="false"
         android:layout_below="@+id/ET_link"
         android:layout_alignParentRight="true"

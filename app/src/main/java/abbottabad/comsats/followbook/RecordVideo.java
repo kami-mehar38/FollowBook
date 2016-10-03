@@ -2,7 +2,7 @@ package abbottabad.comsats.followbook;
 
 import android.net.Uri;
 import android.os.Environment;
-import android.util.Log;
+import android.support.annotation.Nullable;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -19,6 +19,7 @@ public class RecordVideo {
     }
 
     /** Create a File for saving an image or video */
+    @Nullable
     private static File getOutputMediaFile(int type){
 
         // Check that the SDCard is mounted
@@ -30,8 +31,6 @@ public class RecordVideo {
         if (! mediaStorageDir.exists()){
 
             if (! mediaStorageDir.mkdirs()){
-
-                Log.d("MyCameraVideo", "Failed to create directory MyCameraVideo.");
                 return null;
             }
         }

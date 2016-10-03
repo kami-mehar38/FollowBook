@@ -4,21 +4,21 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class FolderOne extends AppCompatActivity implements View.OnClickListener {
+public class FolderOne extends AppCompatActivity implements View.OnClickListener{
 
     public static GridView gridView;
     public static AlertDialog alertDialog;
@@ -46,7 +46,6 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
     private final int VIDEO_REQUEST_CODE = 13;
     private static final int MEDIA_TYPE_VIDEO = 2;
     private String mCurrentPhotoPath;
-    private String Img_decodable_string;
     private File photoFile;
     private static int selectedPosition;
     private static FollowBookDB followBookDB;
@@ -67,6 +66,9 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
     private Button btnAddText;
     private EditText ET_text;
     private AlertDialog AD_text;
+    public static Runnable runnable;
+    public static Handler handler;
+    boolean doubleBackToExitPressedOnce = false;
 
 
     @Override
@@ -75,9 +77,13 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
         setContentView(R.layout.activity_folder_one);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        gridView = (GridView) findViewById(R.id.GridLayout1);
         final String PREFERENCE_FILE_KEY = "abbottabad.comsats.followbook";
         sharedPreferences = this.getSharedPreferences(PREFERENCE_FILE_KEY, Context.MODE_PRIVATE);
+
+        if (getActionBar() != null && sharedPreferences.getBoolean("LOCKED", true)) {
+            getActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+        gridView = (GridView) findViewById(R.id.GridLayout1);
         editor = sharedPreferences.edit();
         editor.putInt("FOLDER", 1);
         previousPosition = new ArrayList<>();
@@ -92,35 +98,54 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
         final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
         if (sharedPreferences.getBoolean("LOCKED", false)) {
-            fab.setVisibility(View.GONE);
+            fab.setAlpha(0);
+            fab.setCompatElevation(0);
+            fab.setRippleColor(Color.TRANSPARENT);
+            fab.setBackgroundTintList(ColorStateList.valueOf(Color
+                    .parseColor("#fff7cb")));
         }
-
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                int folder = sharedPreferences.getInt("FOLDER", 1);
-                ImageInfo imageInfo = new ImageInfo();
-                imageInfo.setImageId(R.drawable.picture);
-                imageInfo.setImageText("Add Description");
-                int imageId = gridViewAdapter.addImage(imageInfo);
-                gridView.setAdapter(gridViewAdapter);
+                if (!sharedPreferences.getBoolean("LOCKED", false)) {
+                    int folder = sharedPreferences.getInt("FOLDER", 1);
+                    ImageInfo imageInfo = new ImageInfo();
+                    imageInfo.setImageId(R.drawable.picture);
+                    imageInfo.setImageText("Add Description");
+                    int imageId = gridViewAdapter.addImage(imageInfo);
+                    gridView.setAdapter(gridViewAdapter);
 
-                if (folder == 1) {
-                    followBookDB.addImage(new int[]{imageId}, "default", "Add Description");
-                    followBookDB.addSound(new int[]{imageId}, "default");
-                    followBookDB.addVideo(new int[]{imageId}, "default");
-                    followBookDB.addYouTubeLink(new int[]{imageId}, "default");
-                } else {
-                    int[] imageIds = new int[previousPosition.size() + 1];
-                    for (int i = 0; i < previousPosition.size(); i++) {
-                        imageIds[i] = previousPosition.get(i);
+                    if (folder == 1) {
+                        followBookDB.addImage(new int[]{imageId}, "default", "Add Caption");
+                        followBookDB.addSound(new int[]{imageId}, "default");
+                        followBookDB.addVideo(new int[]{imageId}, "default");
+                        followBookDB.addYouTubeLink(new int[]{imageId}, "default");
+                    } else {
+                        int[] imageIds = new int[previousPosition.size() + 1];
+                        for (int i = 0; i < previousPosition.size(); i++) {
+                            imageIds[i] = previousPosition.get(i);
+                        }
+                        imageIds[imageIds.length - 1] = imageId;
+                        followBookDB.addImage(imageIds, "default", "Add Caption");
+                        followBookDB.addSound(imageIds, "default");
+                        followBookDB.addVideo(imageIds, "default");
+                        followBookDB.addYouTubeLink(imageIds, "default");
                     }
-                    imageIds[imageIds.length - 1] = imageId;
-                    followBookDB.addImage(imageIds, "default", "Add Description");
-                    followBookDB.addSound(imageIds, "default");
-                    followBookDB.addVideo(imageIds, "default");
-                    followBookDB.addYouTubeLink(imageIds, "default");
+                }else{
+                    if (doubleBackToExitPressedOnce) {
+                        finish();
+                    }
+                    doubleBackToExitPressedOnce = true;
+                    Toast.makeText(FolderOne.this, "Press again to exit", Toast.LENGTH_SHORT).show();
+
+                    new Handler().postDelayed(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            doubleBackToExitPressedOnce=false;
+                        }
+                    }, 2000);
                 }
 
             }
@@ -263,6 +288,7 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
     }
 
     public void initialSetup() {
+        checkForFolder();
         gridViewAdapter.clearAll();
         int folder = sharedPreferences.getInt("FOLDER", 1);
         if (folder > 1) {
@@ -273,7 +299,6 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
         String[] imagePaths = new String[0];
         String[] imageText = new String[0];
         if (folder == 1) {
-            Log.i("TAG", "initialSetup: " + folder);
             image = followBookDB.showIcons(new int[]{});
             if (image != null && image.size() > 0) {
                 imagePaths = new String[image.size() / 2];
@@ -328,31 +353,9 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
             if (image != null) {
                 if (image.size() > 0) {
                     gridView.setAdapter(gridViewAdapter);
-                }
+                } else onBackPressed();
             }
         } else gridView.setAdapter(gridViewAdapter);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_folder_one, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -405,18 +408,13 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
 
                 // File imageFile = new File(selectedImage);
                 String result;
-                Log.i("tag", "enter:");
                 Cursor cursor = getContentResolver().query(selectedImage, null, null, null, null);
                 if (cursor == null) { // Source is Dropbox or other similar local file path
                     result = selectedImage.getPath();
-                    Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
-                    Log.i("tag", result);
                 } else {
                     cursor.moveToFirst();
                     int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
                     result = cursor.getString(idx);
-                    Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
-                    Log.i("tag", result);
                     cursor.close();
                 }
                 if (folder > 1) {
@@ -439,14 +437,10 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
                 Cursor cursor = getContentResolver().query(videoPath, null, null, null, null);
                 if (cursor == null) { // Source is Dropbox or other similar local file path
                     result = videoPath.getPath();
-                    Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
-                    Log.i("tag", result);
                 } else {
                     cursor.moveToFirst();
                     int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
                     result = cursor.getString(idx);
-                    Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
-                    Log.i("tag", result);
                     cursor.close();
                 }
                 if (resultCode == RESULT_OK) {
@@ -563,6 +557,14 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
                         initialSetup();
                     }
                 } else Toast.makeText(FolderOne.this, "Enter some text", Toast.LENGTH_LONG).show();
+                break;
+            }
+            case android.R.id.home:{
+                if (sharedPreferences.getBoolean("LOCKED", true)){
+                    onBackPressed();
+                    handler.removeCallbacks(runnable);
+                }
+                break;
             }
         }
     }
@@ -596,12 +598,14 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
     @Override
     public void onBackPressed() {
         int folder = sharedPreferences.getInt("FOLDER", 1);
-        if (videoLayout.getVisibility() == View.VISIBLE) {
+        if (videoLayout != null && videoLayout.getVisibility() == View.VISIBLE) {
             videoLayout.stop();
             videoLayout.setVisibility(View.GONE);
-        } else if (isPlayingAudio) {
+        }
+        if (isPlayingAudio) {
             recordAudio.stopPlaying();
-        } else if (folder > 1) {
+        }
+        if (folder > 1 && !sharedPreferences.getBoolean("LOCKED", false)) {
             folder = sharedPreferences.getInt("FOLDER", 1) - 1;
             editor.putInt("FOLDER", folder);
             editor.commit();
@@ -609,8 +613,32 @@ public class FolderOne extends AppCompatActivity implements View.OnClickListener
                 previousPosition.remove(previousPosition.size() - 1);
             }
             initialSetup();
-        } else
+        } else if (!sharedPreferences.getBoolean("LOCKED", false)) {
             super.onBackPressed();
+        } else if (folder > 1){
+            folder = sharedPreferences.getInt("FOLDER", 1) - 1;
+            editor.putInt("FOLDER", folder);
+            editor.commit();
+            if (previousPosition.size() > 0) {
+                previousPosition.remove(previousPosition.size() - 1);
+            }
+            initialSetup();
+        }
     }
 
+    public void checkForFolder() {
+        if (sharedPreferences.getBoolean("LOCKED", false)) {
+            final int intervalTime = 10000; // 10 sec
+            runnable = new Runnable() {
+                @Override
+                public void run() {
+                    if (sharedPreferences.getInt("FOLDER", 1) > 0) {
+                        onBackPressed();
+                    }
+                }
+            };
+            handler = new Handler();
+            handler.postDelayed(runnable, intervalTime);
+        }
+    }
 }

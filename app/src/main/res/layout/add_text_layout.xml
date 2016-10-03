@@ -37,7 +37,7 @@
         android:id="@+id/btn_addText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/set"
+        android:text="@string/ok"
         android:textAllCaps="false"
         android:layout_below="@+id/ET_text"
         android:layout_alignParentRight="true"

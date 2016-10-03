@@ -6,7 +6,6 @@ package abbottabad.comsats.followbook;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Environment;
-import android.util.Log;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -15,7 +14,6 @@ import java.util.Date;
 
 public class RecordAudio
 {
-     private final String LOG_TAG = "RecordAudio";
      private static String mFileName = null;
      private MediaRecorder mRecorder = null;
      private static MediaPlayer   mPlayer = null;
@@ -35,7 +33,6 @@ public class RecordAudio
             mPlayer.prepare();
             mPlayer.start();
         } catch (IOException e) {
-            Log.e(LOG_TAG, "prepare() failed");
         }
     }
 
@@ -55,7 +52,6 @@ public class RecordAudio
         try {
             mRecorder.prepare();
         } catch (IOException e) {
-            Log.e(LOG_TAG, "prepare() failed");
         }
 
         mRecorder.start();

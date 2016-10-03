@@ -23,7 +23,6 @@ class FollowBookDB extends SQLiteOpenHelper {
         super(context, DATABASE_NAME, null, VERSION);
         final String PREFERENCE_FILE_KEY = "abbottabad.comsats.followbook";
         sharedPreferences = context.getSharedPreferences(PREFERENCE_FILE_KEY, Context.MODE_PRIVATE);
-        Log.e("database operations", "database created/open...");
     }
 
     @Override
@@ -33,7 +32,6 @@ class FollowBookDB extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-        Log.e("onUpgrade", " is called");
     }
 
     private void createTable(SQLiteDatabase db) {
@@ -43,7 +41,6 @@ class FollowBookDB extends SQLiteOpenHelper {
         String querryString3 = "";
 
         int value = sharedPreferences.getInt("FOLDER", 1);
-        Log.i("value", "createTable: " + value);
         for (int i = 1; i <= value; i++) {
             querryString += FollowBookInfo.innerClass.Image_Id + i;
             querryString += " INTEGER";
@@ -78,9 +75,6 @@ class FollowBookDB extends SQLiteOpenHelper {
 
         String query3 = "create table if not exists " + FollowBookInfo.innerClass.Table_YouTube + value + "(" + querryString3 + ");";
         db.execSQL(query3);
-
-        Log.e("database" +
-                " operations", "tables created...");
     }
 
     void upgrade() {
@@ -94,7 +88,6 @@ class FollowBookDB extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         int i = 1;
         for (int anImage_id : image_id) {
-            Log.i("ADDING IMAGE", "addImage: " + anImage_id);
             values.put(FollowBookInfo.innerClass.Image_Id + i, anImage_id);
             i++;
         }
@@ -102,7 +95,6 @@ class FollowBookDB extends SQLiteOpenHelper {
         values.put(FollowBookInfo.innerClass.Image_Text, image_text);
         db.insert(FollowBookInfo.innerClass.Table_Image + value, null, values);
         db.close();
-        Log.e("database operations", "one row inserted...");
     }
 
     void updateImagePath(String imagePath, int[] imageId) {
@@ -159,7 +151,6 @@ class FollowBookDB extends SQLiteOpenHelper {
 
         String selectQuery;
         if (value == 1) {
-            Log.i("TAG", "showIcons: ");
             selectQuery = "SELECT " + FollowBookInfo.innerClass.Image_Path + ", " + FollowBookInfo.innerClass.Image_Text + " FROM " + FollowBookInfo.innerClass.Table_Image + value;
         } else {
             int i = 1;
@@ -175,14 +166,12 @@ class FollowBookDB extends SQLiteOpenHelper {
                 i++;
             }
         }
-        Log.i("TAG", "showIcons: " + selectQuery);
         Cursor cursor = db.rawQuery(selectQuery, null);
         cursor.moveToFirst();
         List<String> imagePaths = new ArrayList<>();
         while (!cursor.isAfterLast()) {
             imagePaths.add(cursor.getString(0));
             imagePaths.add(cursor.getString(1));
-            Log.i("TAG", "showIcons: " + cursor.getString(0));
             cursor.moveToNext();
         }
         cursor.close();
@@ -207,7 +196,6 @@ class FollowBookDB extends SQLiteOpenHelper {
     }
 
     void updateSoundPath(String soundPath, int[] imageId) {
-        Log.i("TAG", "updateSoundPath: " + soundPath);
         int value = sharedPreferences.getInt("FOLDER", 1);
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -216,7 +204,6 @@ class FollowBookDB extends SQLiteOpenHelper {
         String whereClause = "";
         String[] compareClause = new String[imageId.length];
         for (int anImage_id : imageId) {
-            Log.i("TAG", "updateSoundPath: " + anImage_id);
             compareClause[i] = String.valueOf(anImage_id);
             if (i == 0) {
                 whereClause += FollowBookInfo.innerClass.Image_Id + (i + 1) + " = ?";
@@ -242,7 +229,6 @@ class FollowBookDB extends SQLiteOpenHelper {
         selectQuery = "SELECT " + FollowBookInfo.innerClass.Sound_Path + " FROM " + FollowBookInfo.innerClass.Table_Sound + value;
 
         for (int anImage_id : imageId) {
-            Log.i("TAG", "getSound: " + anImage_id);
             if (i == 1) {
                 selectQuery += " WHERE " + FollowBookInfo.innerClass.Image_Id + i + " = " + anImage_id;
             } else {
@@ -266,7 +252,6 @@ class FollowBookDB extends SQLiteOpenHelper {
     }
 
     void addVideo(int video_id[], String sound_path) {
-        Log.i("TAG", "addVideo: " + sound_path);
         int value = sharedPreferences.getInt("FOLDER", 1);
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -278,11 +263,9 @@ class FollowBookDB extends SQLiteOpenHelper {
         values.put(FollowBookInfo.innerClass.Video_Path, sound_path);
         db.insert(FollowBookInfo.innerClass.Table_Video + value, null, values);
         db.close();
-        Log.e("database operations", "one row inserted...");
     }
 
     void updateVideoPath(String videoPath, int[] imageId) {
-        Log.i("TAG", "updateVideoPath: " + videoPath);
         int value = sharedPreferences.getInt("FOLDER", 1);
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -317,7 +300,6 @@ class FollowBookDB extends SQLiteOpenHelper {
         selectQuery = "SELECT " + FollowBookInfo.innerClass.Video_Path + " FROM " + FollowBookInfo.innerClass.Table_Video + value;
 
         for (int anImage_id : imageId) {
-            Log.i("TAG", "getSound: " + anImage_id);
             if (i == 1) {
                 selectQuery += " WHERE " + FollowBookInfo.innerClass.Image_Id + i + " = " + anImage_id;
             } else {
@@ -333,7 +315,6 @@ class FollowBookDB extends SQLiteOpenHelper {
         String soundPath = null;
         while (!cursor.isAfterLast()) {
             soundPath = cursor.getString(0);
-            Log.i("TAG", "getVideo: " + soundPath);
             cursor.moveToNext();
         }
         cursor.close();
@@ -342,7 +323,6 @@ class FollowBookDB extends SQLiteOpenHelper {
     }
 
     void addYouTubeLink(int link_id[], String link_path) {
-        Log.i("TAG", "addVideo: " + link_path);
         int value = sharedPreferences.getInt("FOLDER", 1);
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -354,12 +334,10 @@ class FollowBookDB extends SQLiteOpenHelper {
         values.put(FollowBookInfo.innerClass.YouTube_Path, link_path);
         db.insert(FollowBookInfo.innerClass.Table_YouTube + value, null, values);
         db.close();
-        Log.e("database operations", "one row inserted...");
         db.close();
     }
 
     void updateYouTubeLink(String linkPath, int[] linkId) {
-        Log.i("TAG", "updateVideoPath: " + linkPath);
         int value = sharedPreferences.getInt("FOLDER", 1);
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -393,7 +371,6 @@ class FollowBookDB extends SQLiteOpenHelper {
         selectQuery = "SELECT " + FollowBookInfo.innerClass.YouTube_Path + " FROM " + FollowBookInfo.innerClass.Table_YouTube + value;
 
         for (int anImage_id : imageId) {
-            Log.i("TAG", "getSound: " + anImage_id);
             if (i == 1) {
                 selectQuery += " WHERE " + FollowBookInfo.innerClass.Image_Id + i + " = " + anImage_id;
             } else {
@@ -409,7 +386,6 @@ class FollowBookDB extends SQLiteOpenHelper {
         String soundPath = null;
         while (!cursor.isAfterLast()) {
             soundPath = cursor.getString(0);
-            Log.i("TAG", "getVideo: " + soundPath);
             cursor.moveToNext();
         }
         cursor.close();

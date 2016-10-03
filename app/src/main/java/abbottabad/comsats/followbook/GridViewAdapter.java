@@ -22,7 +22,6 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -94,7 +93,6 @@ class GridViewAdapter extends BaseAdapter {
                 try {
                     exif = new ExifInterface(imageInfo.getImagePath());
                     int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1);
-                    Log.d("EXIF", "Exif: " + orientation);
                     Matrix matrix = new Matrix();
                     if (orientation == 6) {
                         matrix.postRotate(90);
@@ -126,7 +124,7 @@ class GridViewAdapter extends BaseAdapter {
                 @Override
                 public void onClick(View view) {
                     playSound(position);
-                    Toast.makeText(context, ""+position, Toast.LENGTH_LONG).show();
+                    FolderOne.handler.removeCallbacks(FolderOne.runnable);
                 }
             });
         }
@@ -145,7 +143,6 @@ class GridViewAdapter extends BaseAdapter {
             imageIds[imageIds.length - 1] = position;
             String soundPath = new FollowBookDB(context).getSound(imageIds);
             if (soundPath != null &&!soundPath.equals("default")) {
-                Log.i("TAG", "playSound: " + soundPath);
                 FolderOne.isPlayingAudio = true;
                 new RecordAudio().startPlaying(soundPath, position);
             } else {
@@ -154,7 +151,6 @@ class GridViewAdapter extends BaseAdapter {
         } else {
             String soundPath = new FollowBookDB(context).getSound(new int[]{position});
             if (!soundPath.equals("default")) {
-                Log.i("TAG", "playSound: " + soundPath);
                 FolderOne.isPlayingAudio = true;
                 new RecordAudio().startPlaying(soundPath, position);
             } else {
@@ -221,7 +217,6 @@ class GridViewAdapter extends BaseAdapter {
         SharedPreferences sharedPreferences = context.getSharedPreferences(PREFERENCE_FILE_KEY, Context.MODE_PRIVATE);
         int folder = sharedPreferences.getInt("FOLDER", 1);
         if (folder > 1) {
-            Log.i("TAG", "playYoutubeVideo: " + folder);
             int[] imageIds = new int[FolderOne.previousPosition.size() + 1];
             for (int i = 0; i < FolderOne.previousPosition.size(); i++) {
                 imageIds[i] = FolderOne.previousPosition.get(i);
@@ -245,8 +240,6 @@ class GridViewAdapter extends BaseAdapter {
                 Config.setYoutubeLink(link);
                 context.startActivity(new Intent(context, YouTubePlayerUtils.class));
             } else {
-
-                Log.i("TAG", "playYoutubeVideo: Position " + position);
                 FolderOne.previousPosition.add(position);
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putInt("FOLDER", sharedPreferences.getInt("FOLDER", 1) + 1);

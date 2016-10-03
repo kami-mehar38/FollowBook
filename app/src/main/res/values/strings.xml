@@ -12,4 +12,6 @@
     <string name="image_caption">Image caption</string>
     <string name="set">Set</string>
     <string name="cancel">Cancel</string>
+    <string name="ok">Ok</string>
+    <string name="record_audio">Record audio</string>
 </resources>

@@ -111,7 +111,6 @@ public class YouTubePlayerUtils extends YouTubeBaseActivity implements
 
         @Override
         public void onVideoEnded() {
-            Toast.makeText(context, "OK", Toast.LENGTH_LONG).show();
             FolderOne.previousPosition.add(Config.getPosition());
             String PREFERENCE_FILE_KEY = "abbottabad.comsats.followbook";
             SharedPreferences sharedPreferences  = context.getSharedPreferences(PREFERENCE_FILE_KEY, Context.MODE_PRIVATE);
@@ -125,6 +124,21 @@ public class YouTubePlayerUtils extends YouTubeBaseActivity implements
         @Override
         public void onError(YouTubePlayer.ErrorReason errorReason) {
 
+            Toast.makeText(context, "Youtube playback error, consider checking your internet connection.", Toast.LENGTH_LONG).show();
+            FolderOne.previousPosition.add(Config.getPosition());
+            String PREFERENCE_FILE_KEY = "abbottabad.comsats.followbook";
+            SharedPreferences sharedPreferences  = context.getSharedPreferences(PREFERENCE_FILE_KEY, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt("FOLDER", sharedPreferences.getInt("FOLDER", 1) + 1);
+            editor.apply();
+            finish();
+            new FolderOne().initialSetup();
+
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+
     }
 }
