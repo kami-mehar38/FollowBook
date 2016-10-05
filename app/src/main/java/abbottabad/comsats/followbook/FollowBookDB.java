@@ -205,7 +205,10 @@ class FollowBookDB extends SQLiteOpenHelper {
         String[] compareClause = new String[imageId.length];
         for (int anImage_id : imageId) {
             compareClause[i] = String.valueOf(anImage_id);
+            Log.e("database operations", anImage_id + "");
+
             if (i == 0) {
+
                 whereClause += FollowBookInfo.innerClass.Image_Id + (i + 1) + " = ?";
             } else {
                 whereClause += " AND ";
@@ -391,5 +394,125 @@ class FollowBookDB extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         return soundPath;
+    }
+
+    void Delete(int[] imageId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        int value = sharedPreferences.getInt("FOLDER", 1);
+        int count = sharedPreferences.getInt("COUNT", 1);
+
+        for (int j = value; j <= count; j++) {
+            String deleteQuery;
+            String updateQuery;
+            deleteQuery = "DELETE FROM " + FollowBookInfo.innerClass.Table_Image + j;
+            updateQuery = "UPDATE " + FollowBookInfo.innerClass.Table_Image + j;
+            int i=1;
+            int k=value;
+            for (int anImage_id : imageId) {
+                if(i==1) {
+                    deleteQuery += " WHERE " + FollowBookInfo.innerClass.Image_Id + i + " = " + anImage_id;
+                    updateQuery += " SET " + (FollowBookInfo.innerClass.Image_Id + k) + " = " + (FollowBookInfo.innerClass.Image_Id + value) +
+                            " -1 WHERE " + FollowBookInfo.innerClass.Image_Id + k + " > " + anImage_id;
+                }
+               else {
+                    deleteQuery += " AND ";
+                    deleteQuery += FollowBookInfo.innerClass.Image_Id + i + " = " + anImage_id;
+
+                    updateQuery += " AND ";
+                    k--;
+                    updateQuery += FollowBookInfo.innerClass.Image_Id + k + " = " + anImage_id;
+                }
+
+                i++;
+            }
+            db.execSQL(deleteQuery);
+            db.execSQL(updateQuery);
+
+            String deleteQuerySound;
+            String updateQuerySound;
+            deleteQuerySound = "DELETE FROM " + FollowBookInfo.innerClass.Table_Sound + j;
+            updateQuerySound = "UPDATE " + FollowBookInfo.innerClass.Table_Sound + j;
+            i=1;
+             k=value;
+            for (int anImage_id : imageId) {
+              if(i==1) {
+                  deleteQuerySound += " WHERE " + FollowBookInfo.innerClass.Image_Id + i + " = " + anImage_id;
+                  updateQuerySound += " SET " + (FollowBookInfo.innerClass.Image_Id + k) + " = " + (FollowBookInfo.innerClass.Image_Id + value) +
+                          " -1 WHERE " + FollowBookInfo.innerClass.Image_Id + k + " > " + anImage_id;
+              }
+                else{
+                  deleteQuerySound += " AND ";
+                  deleteQuerySound += FollowBookInfo.innerClass.Image_Id + i + " = " + anImage_id;
+
+                  updateQuerySound += " AND ";
+                  k--;
+                  updateQuerySound += FollowBookInfo.innerClass.Image_Id + k + " = " + anImage_id;
+              }
+                i++;
+            }
+            db.execSQL(deleteQuerySound);
+            db.execSQL(updateQuerySound);
+
+            Log.i("FUCK", "delete fuck off");
+
+            String deleteQueryVideo;
+            String updateQueryVideo;
+            deleteQueryVideo = "DELETE FROM " + FollowBookInfo.innerClass.Table_Video + j;
+            updateQueryVideo = "UPDATE " + FollowBookInfo.innerClass.Table_Video + j;
+            i=1;
+             k=value;
+            for (int anImage_id : imageId) {
+                if(i==1) {
+                    deleteQueryVideo += " WHERE " + FollowBookInfo.innerClass.Image_Id + i + " = " + anImage_id;
+                    updateQueryVideo += " SET " + (FollowBookInfo.innerClass.Image_Id + k) + " = " + (FollowBookInfo.innerClass.Image_Id + value) +
+                            " -1 WHERE " + FollowBookInfo.innerClass.Image_Id + k + " > " + anImage_id;
+                }
+                else{
+                    deleteQueryVideo += " AND ";
+                    deleteQueryVideo += FollowBookInfo.innerClass.Image_Id + i + " = " + anImage_id;
+
+                    updateQueryVideo += " AND ";
+                    k--;
+                    updateQueryVideo += FollowBookInfo.innerClass.Image_Id + k + " = " + anImage_id;
+                }
+                i++;
+            }
+
+
+            db.execSQL(deleteQueryVideo);
+            db.execSQL(updateQueryVideo);
+
+
+            String deleteQueryYoutubeLink;
+
+            String updateQueryLink;
+
+            deleteQueryYoutubeLink = "DELETE FROM " + FollowBookInfo.innerClass.Table_YouTube + j;
+            updateQueryLink = "UPDATE " + FollowBookInfo.innerClass.Table_YouTube + j;
+
+            i=1;
+             k=value;
+            for (int anImage_id : imageId) {
+                if(i==1) {
+                    deleteQueryYoutubeLink += " WHERE " + FollowBookInfo.innerClass.Image_Id + i + " = " + anImage_id;
+                    updateQueryLink += " SET " + (FollowBookInfo.innerClass.Image_Id + k) + " = " + (FollowBookInfo.innerClass.Image_Id + value) +
+                            " -1 WHERE " + FollowBookInfo.innerClass.Image_Id + k + " > " + anImage_id;
+                }
+                else{
+                    deleteQueryYoutubeLink += " AND ";
+                    deleteQueryYoutubeLink += FollowBookInfo.innerClass.Image_Id + i + " = " + anImage_id;
+
+                    updateQueryLink += " AND ";
+                    k--;
+                    updateQueryLink += FollowBookInfo.innerClass.Image_Id + k + " = " + anImage_id;
+                }
+i++;
+            }
+            db.execSQL(deleteQueryYoutubeLink);
+            db.execSQL(updateQueryLink);
+        }
+        db.close();
+        value++;
+
     }
 }

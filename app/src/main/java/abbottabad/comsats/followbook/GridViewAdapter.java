@@ -15,7 +15,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.media.ExifInterface;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -124,7 +123,9 @@ class GridViewAdapter extends BaseAdapter {
                 @Override
                 public void onClick(View view) {
                     playSound(position);
-                    FolderOne.handler.removeCallbacks(FolderOne.runnable);
+                    if (FolderOne.handler != null) {
+                        FolderOne.handler.removeCallbacks(FolderOne.runnable);
+                    }
                 }
             });
         }
@@ -142,7 +143,7 @@ class GridViewAdapter extends BaseAdapter {
             }
             imageIds[imageIds.length - 1] = position;
             String soundPath = new FollowBookDB(context).getSound(imageIds);
-            if (soundPath != null &&!soundPath.equals("default")) {
+            if (soundPath != null && !soundPath.equals("default")) {
                 FolderOne.isPlayingAudio = true;
                 new RecordAudio().startPlaying(soundPath, position);
             } else {
@@ -150,7 +151,7 @@ class GridViewAdapter extends BaseAdapter {
             }
         } else {
             String soundPath = new FollowBookDB(context).getSound(new int[]{position});
-            if (!soundPath.equals("default")) {
+            if (soundPath!=null && !soundPath.equals("default")  ) {
                 FolderOne.isPlayingAudio = true;
                 new RecordAudio().startPlaying(soundPath, position);
             } else {
@@ -190,13 +191,12 @@ class GridViewAdapter extends BaseAdapter {
             }
         } else {
             String videoPath = new FollowBookDB(context).getVideo(new int[]{position});
-            if (!videoPath.equals("default")) {
+            if (videoPath != null && !videoPath.equals("default")) {
                 FolderOne.videoLayout.reset();
                 FolderOne.videoLayout.setShouldAutoplay(true);
                 FolderOne.videoLayout.setVisibility(View.VISIBLE);
                 try {
                     FolderOne.videoLayout.setVideoURI(Uri.parse(videoPath));
-
                     FolderOne.videoLayout.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                         @Override
                         public void onCompletion(MediaPlayer mediaPlayer) {
@@ -223,7 +223,7 @@ class GridViewAdapter extends BaseAdapter {
             }
             imageIds[imageIds.length - 1] = position;
             String link = new FollowBookDB(context).getYouTubeLink(imageIds);
-            if (link != null &&!link.equals("default")) {
+            if (link != null && !link.equals("default")) {
                 Config.setYoutubeLink(link);
                 Config.setPosition(position);
                 context.startActivity(new Intent(context, YouTubePlayerUtils.class));
@@ -236,7 +236,7 @@ class GridViewAdapter extends BaseAdapter {
             }
         } else {
             String link = new FollowBookDB(context).getYouTubeLink(new int[]{position});
-            if (!link.equals("default")) {
+            if (link != null && !link.equals("default")) {
                 Config.setYoutubeLink(link);
                 context.startActivity(new Intent(context, YouTubePlayerUtils.class));
             } else {
